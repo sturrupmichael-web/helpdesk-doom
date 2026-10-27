@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Helpdesk Survivors: Doom Mode</title>
+  <meta name="description" content="Helpdesk Survivors as a 1993-style first-person shooter. Fight your way through the office with nothing but IT tools.">
+  <meta property="og:title" content="Helpdesk Survivors: Doom Mode">
+  <meta property="og:description" content="The IT helpdesk, as a 1993-style first-person shooter.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#1a1c2c">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+    #hud { cursor: crosshair; }
+    #boot { position: fixed; inset: 0; display: grid; place-items: center; color: #b13e53; font: bold 16px ui-monospace, monospace; text-align: center; padding: 24px; }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "./node_modules/three/build/three.module.js", "three/addons/": "./node_modules/three/examples/jsm/" } }
+  </script>
+</head>
+<body>
+  <canvas id="view"></canvas>
+  <canvas id="hud"></canvas>
+  <div id="boot">LOADING...</div>
+  <script>
+    // Shows load errors on the page instead of a black screen (main.js removes #boot once running).
+    addEventListener('error', (e) => {
+      const b = document.getElementById('boot');
+      if (b) b.textContent = 'The game failed to load: ' + (e.message || (e.target && (e.target.src || e.target.href)) || 'unknown error');
+    }, true);
+    addEventListener('unhandledrejection', (e) => {
+      const b = document.getElementById('boot');
+      if (b) b.textContent = 'The game failed to load: ' + (e.reason && e.reason.message || e.reason);
+    });
+  </script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
