@@ -52,6 +52,7 @@ still runs.
 | Esc or P | Pause menu: options, controls, restart, quit |
 | M / N | Music / all sound on and off |
 | Gamepad | Left stick moves, right stick looks, RT fires, A uses, Start pauses |
+| Touch | Drag on the left half to move and on the right half to look. Hold FIRE (drag it to aim), tap USE, TOOL, MAP and II (pause). Play with the phone held sideways |
 
 The cheat codes are DOOM's: type `iddqd` for invulnerability, or `idkfa` for every tool,
 full ammo, armor and all three badges. `idclev12` warps to E1M2 (`idclev11` back to E1M1).

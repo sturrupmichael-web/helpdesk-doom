@@ -130,4 +130,50 @@ export const tests = [
     assert(JSON.stringify(r) === JSON.stringify(['tally', 'play', 1, true, 'tally', 'ending', 'title']), JSON.stringify(r));
     assert(page.errors.length === 0, page.errors.join('\n'));
   }],
+  // Last, since a touch switches the page to touch controls for good.
+  ['on a touch screen: the stick moves, FIRE fires, II pauses', async (page) => {
+    const r = await page.evaluate(() => {
+      const ev = (type, target, x, y, id) =>
+        target.dispatchEvent(new PointerEvent(type, { pointerType: 'touch', pointerId: id, clientX: x, clientY: y, bubbles: true }));
+      const root = document.getElementById('touch');
+      const button = (id) => {
+        const b = root.querySelector(`[data-id=${id}]`);
+        const r = b.getBoundingClientRect();
+        return [b, r.x + r.width / 2, r.y + r.height / 2];
+      };
+      ev('pointerdown', document.body, 10, 10, 1);
+      ev('pointerup', document.body, 10, 10, 1);
+      doom.start(3);
+      doom.tick(1);
+      const out = { touch: doom.input.touch, shown: getComputedStyle(root).display !== 'none' };
+      const p = doom.game.player;
+      const z0 = p.z;
+      ev('pointerdown', root, 100, 200, 2);
+      ev('pointermove', root, 100, 150, 2);
+      doom.tick(20);
+      out.moved = Math.hypot(p.x - 75, p.z - z0) > 1;
+      ev('pointerup', root, 100, 150, 2);
+      const yaw = p.yaw;
+      ev('pointerdown', root, innerWidth * 0.6, 150, 3);
+      ev('pointermove', root, innerWidth * 0.6 + 60, 150, 3);
+      ev('pointerup', root, innerWidth * 0.6 + 60, 150, 3);
+      doom.tick(1);
+      out.turned = p.yaw !== yaw;
+      const ammo = doom.game.arsenal.ammo.tickets;
+      const [fire, fx, fy] = button('fire');
+      ev('pointerdown', fire, fx, fy, 4);
+      doom.tick(30);
+      ev('pointerup', root, fx, fy, 4);
+      out.fired = doom.game.arsenal.ammo.tickets < ammo;
+      const [pause, px, py] = button('pause');
+      ev('pointerdown', pause, px, py, 5);
+      ev('pointerup', root, px, py, 5);
+      doom.tick(1);
+      out.mode = doom.mode;
+      out.hidden = getComputedStyle(root).display === 'none';
+      return out;
+    });
+    assert(JSON.stringify(r) === JSON.stringify({ touch: true, shown: true, moved: true, turned: true, fired: true, mode: 'paused', hidden: true }), JSON.stringify(r));
+    assert(page.errors.length === 0, page.errors.join('\n'));
+  }],
 ];

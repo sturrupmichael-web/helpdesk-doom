@@ -7,6 +7,7 @@ import { startLoop, STEP } from '../shared/src/engine/loop.js';
 import { Level, loadLevelData } from './level.js';
 import { Renderer, LightEffects, DETAIL } from './renderer.js';
 import { Input } from './input.js';
+import { Touch } from './touch.js';
 import { Hud, BAR_H } from './hud.js';
 import { Game } from './game.js';
 import { Tally, Ending, drawDeath } from './screens.js';
@@ -20,6 +21,7 @@ const view = document.getElementById('view');
 const hudCanvas = document.getElementById('hud');
 const renderer = new Renderer(view);
 const input = new Input(hudCanvas);
+const touch = new Touch(input);
 const hud = new Hud(hudCanvas);
 const lights = new LightEffects();
 
@@ -45,6 +47,7 @@ const menus = new Menus({
   toggleMusic: () => audio.toggleMusic(),
   applyOptions,
 });
+touch.onEnable = () => menus.useTouchControls();
 
 function applyOptions() {
   input.sensitivity = options.sensitivity;
@@ -88,6 +91,7 @@ function toTitle() {
 
 function startShift(s) {
   skill = s;
+  if (input.touch) fullscreen();
   playLevel(0, null);
 }
 
@@ -100,6 +104,16 @@ function playLevel(index, carry) {
   menus.close();
   hud.message(`${level.name}`);
   input.lock();
+}
+
+// On a phone, play in fullscreen, held sideways, where the browser allows it (not
+// iPhone Safari). It needs a tap, so it's asked for when a shift starts.
+function fullscreen() {
+  const el = document.documentElement;
+  if (document.fullscreenElement || !el.requestFullscreen) return;
+  el.requestFullscreen({ navigationUI: 'hide' })
+    .then(() => screen.orientation?.lock?.('landscape'))
+    .catch(() => {});
 }
 
 function pause() {
@@ -197,8 +211,9 @@ function update(dt) {
     return;
   }
 
-  // Playing.
-  if (presses.includes('pause') || (presses.includes('unlocked') && !game.player.dead)) return pause();
+  // Playing. Turning a phone upright pauses (the game can't be played that way).
+  if (touch.portrait && !game.player.dead) return pause();
+  if (presses.includes('pause') || (presses.includes('unlocked') && !input.touch && !game.player.dead)) return pause();
   cheats(presses);
   for (const a of presses) {
     if (a === 'map') mapOpen = !mapOpen;
@@ -224,6 +239,7 @@ function update(dt) {
 
 function render(dt) {
   const ctx = hud.ctx;
+  touch.update(mode === 'play' && input.locked && !game.player.dead && !game.exited);
   if (mode === 'title') {
     // Slowly look around the office.
     game.player.yaw += dt * 0.12;
@@ -250,7 +266,7 @@ function render(dt) {
   hud.draw(mode === 'play' ? dt : 0, game, mapOpen ? (c) => automap.draw(c, hud.w, hud.h - BAR_H, game) : null);
   if (mode === 'paused') menus.draw(ctx, hud.w, hud.h - BAR_H, dt);
   else if (game.player.dead) drawDeath(ctx, hud.w, hud.h, deadT, hud.h - BAR_H);
-  else if (!input.locked) hud.banner(['CLICK TO PLAY'], { scale: 2, color: '#f4f4f4' });
+  else if (!input.locked) hud.banner([input.touch ? 'TAP TO PLAY' : 'CLICK TO PLAY'], { scale: 2, color: '#f4f4f4' });
 }
 
 toTitle();
@@ -279,6 +295,7 @@ window.doom = {
   menus,
   renderer,
   input,
+  touch,
   hud,
   start: startShift,
   pause,

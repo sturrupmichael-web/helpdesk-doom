@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Helpdesk Survivors: Doom Mode</title>
   <meta name="description" content="Helpdesk Survivors as a 1993-style first-person shooter. Fight your way through the office with nothing but IT tools.">
   <meta property="og:title" content="Helpdesk Survivors: Doom Mode">
@@ -11,7 +13,7 @@
   <meta name="theme-color" content="#1a1c2c">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
   <style>
-    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
     canvas { position: fixed; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
     #hud { cursor: crosshair; }
     #boot { position: fixed; inset: 0; display: grid; place-items: center; color: #b13e53; font: bold 16px ui-monospace, monospace; text-align: center; padding: 24px; }

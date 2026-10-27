@@ -1,5 +1,5 @@
-// Keyboard, mouse (pointer lock) and gamepad, read as "actions" so the rest of the game
-// never deals with key codes. Movement and turning are polled every tick; one-off presses
+// Keyboard, mouse (pointer lock), gamepad and touch (src/touch.js), read as "actions" so
+// the rest of the game never deals with key codes. Movement and turning are polled every tick; one-off presses
 // (Use, weapon keys, Pause...) are queued and drained with `presses()`.
 
 const BINDS = {
@@ -50,6 +50,9 @@ const CHEATS = ['iddqd', 'idkfa'];
 const PAD_PRESS = { 0: 'use', 1: 'back', 2: 'map', 3: 'nextWeapon', 4: 'prevWeapon', 5: 'nextWeapon', 9: 'pause', 12: 'up', 13: 'down', 14: 'leftMenu', 15: 'rightMenu' };
 const DEADZONE = 0.18;
 
+// Set once the screen has been touched, so prompts can say TAP instead of PRESS SPACE.
+export const device = { touch: false };
+
 export class Input {
   constructor(surface) {
     this.surface = surface;
@@ -64,6 +67,9 @@ export class Input {
     this.alwaysRun = true; // Shift walks
     this.pad = { lx: 0, ly: 0, rx: 0, ry: 0, fire: false, run: false, prev: [] };
     this.padConnected = false;
+    this.touch = false; // on-screen controls in use (src/touch.js); no pointer lock then
+    this.touchMove = { x: 0, y: 0 }; // the on-screen stick, -1..1 (right, down)
+    this.touchFire = false;
     this.lastKey = null; // for "press any key"
     this.typed = '';
 
@@ -97,6 +103,8 @@ export class Input {
     addEventListener('blur', () => {
       this.down.clear();
       this.mouseFire = false;
+      this.touchFire = false;
+      this.touchMove.x = this.touchMove.y = 0;
     });
     surface.addEventListener('mousedown', (e) => {
       if (!this.locked) return;
@@ -121,6 +129,9 @@ export class Input {
       this.queue.push(e.deltaY > 0 ? 'nextWeapon' : 'prevWeapon');
     }, { passive: false });
     document.addEventListener('pointerlockchange', () => {
+      // With touch controls on, "locked" just means playing: a pointer lock from before the
+      // screen was touched that ends late mustn't pause the game.
+      if (this.touch) return;
       const was = this.locked;
       this.locked = document.pointerLockElement === surface;
       if (was && !this.locked) {
@@ -131,6 +142,11 @@ export class Input {
   }
 
   lock() {
+    // On a touch screen there's no pointer to lock: "locked" just means playing.
+    if (this.touch) {
+      this.locked = true;
+      return;
+    }
     if (this.locked || !this.surface.requestPointerLock) return;
     try {
       const p = this.surface.requestPointerLock();
@@ -140,6 +156,11 @@ export class Input {
     }
   }
   unlock() {
+    if (this.touch) {
+      this.locked = false;
+      this.touchFire = false;
+      this.touchMove.x = this.touchMove.y = 0;
+    }
     if (document.pointerLockElement) document.exitPointerLock();
   }
 
@@ -172,8 +193,8 @@ export class Input {
       strafe += turn;
       turn = 0;
     }
-    forward -= this.pad.ly;
-    strafe += this.pad.lx;
+    forward -= this.pad.ly + this.touchMove.y;
+    strafe += this.pad.lx + this.touchMove.x;
     const len = Math.hypot(forward, strafe);
     if (len > 1) {
       forward /= len;
@@ -186,7 +207,7 @@ export class Input {
       padTurn: this.pad.rx,
       padLook: this.pad.ry,
       run: this.held('run') !== this.alwaysRun || this.pad.run,
-      fire: this.held('fire') || this.mouseFire || this.pad.fire,
+      fire: this.held('fire') || this.mouseFire || this.pad.fire || this.touchFire,
     };
   }
 

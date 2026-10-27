@@ -1,6 +1,7 @@
 // The screens between play: DOOM's intermission tally after the exit switch, and the
 // "you died" overlay. Both draw on the HUD canvas (hud.js) over the last 3D frame.
 
+import { device } from './input.js';
 import { drawText } from './font.js';
 import { PALETTE as P } from '../shared/data/palette.js';
 import { play } from './audio.js';
@@ -104,7 +105,7 @@ export class Tally {
     if (this.done) {
       drawText(ctx, this.line.toUpperCase(), cx, ty + 46, P.g, 1, 'center', P.k);
       if (this.next) drawText(ctx, `NEXT: ${this.next}`, cx, h - 26, P.y, 1, 'center', P.k);
-      if (Math.floor(this.t * 2) % 2) drawText(ctx, 'PRESS SPACE TO CONTINUE', cx, h - 14, P.w, 1, 'center', P.k);
+      if (Math.floor(this.t * 2) % 2) drawText(ctx, device.touch ? 'TAP TO CONTINUE' : 'PRESS SPACE TO CONTINUE', cx, h - 14, P.w, 1, 'center', P.k);
     }
   }
 }
@@ -118,7 +119,7 @@ export function drawDeath(ctx, w, h, t, viewH) {
   ctx.fillRect(0, y - 6, w, 54);
   drawText(ctx, 'YOU BURNED OUT', cx, y, RED, 2, 'center', P.k);
   drawText(ctx, 'THE TICKETS WILL STILL BE HERE TOMORROW.', cx, y + 22, P.g, 1, 'center', P.k);
-  if (Math.floor(t * 2) % 2) drawText(ctx, 'PRESS SPACE TO CLOCK BACK IN', cx, y + 36, P.w, 1, 'center', P.k);
+  if (Math.floor(t * 2) % 2) drawText(ctx, device.touch ? 'TAP TO CLOCK BACK IN' : 'PRESS SPACE TO CLOCK BACK IN', cx, y + 36, P.w, 1, 'center', P.k);
 }
 
 // The end of the episode: DOOM's text screen, typed out a letter at a time over a dark
@@ -160,6 +161,6 @@ export class Ending {
       drawText(ctx, line.slice(0, left), x, 26 + i * 10, P.w, 1, 'left', P.k);
       left -= line.length;
     });
-    if (this.done && Math.floor(this.t * 2) % 2) drawText(ctx, 'PRESS SPACE', cx, h - 12, P.g, 1, 'center', P.k);
+    if (this.done && Math.floor(this.t * 2) % 2) drawText(ctx, device.touch ? 'TAP' : 'PRESS SPACE', cx, h - 12, P.g, 1, 'center', P.k);
   }
 }

@@ -195,6 +195,18 @@ export class Menus {
     return this.pick(item);
   }
 
+  // Once the screen is touched, the controls page lists the touch controls.
+  useTouchControls() {
+    this.defs.controls.text = [
+      'LEFT HALF: DRAG TO MOVE (A STICK APPEARS)',
+      'RIGHT HALF: DRAG TO LOOK AND TURN',
+      'FIRE: HOLD TO FIRE, DRAG IT TO AIM',
+      'USE: DOORS, LIFTS AND THE EXIT SWITCH',
+      'TOOL: NEXT TOOL     MAP: THE AUTOMAP',
+      'II: PAUSE    PLAY IT HELD SIDEWAYS',
+    ];
+  }
+
   draw(ctx, w, h, dt) {
     if (!this.open) return;
     this.t += dt;
